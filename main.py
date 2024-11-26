@@ -52,6 +52,10 @@ y_pred = model.predict(X_test)
 acc = accuracy_score(y_test, y_pred)
 f1 = f1_score(y_test, y_pred, average='weighted')
 
+# Sonuçlari yazdiralim
+print(f"Accuracy: {acc}")
+print(f"F1 Score: {f1}")
+
 # Veriyi kontrol edelim
 print(f"X shape: {X.shape}")
 print(f"y shape: {y.shape}")
