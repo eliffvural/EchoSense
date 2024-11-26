@@ -38,6 +38,14 @@ for label, speaker_folder in enumerate(os.listdir(dataset_path)):
 X = np.array(x)
 y = np.array(y)
 
+# Veriyi eğitim ve test setlerine ayiralim.
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+
+
+
+
 # Veriyi kontrol edelim
 print(f"X shape: {X.shape}")
 print(f"y shape: {y.shape}")
