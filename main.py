@@ -3,9 +3,12 @@ import pyaudio
 import librosa
 import matplotlib.pyplot as plt
 import numpy as np
+import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, f1_score
+from sklearn.ensemble import RandomForestClassifier
+
 
 # Ses verilerinin bulunduğu dizinin yolu
 dataset_path = './dataset'
@@ -24,6 +27,10 @@ audio_data = np.frombuffer(stream.read(chunk), dtype=np.int16)
 # MFCC özelliklerini cikariyoruz
 mfcc = librosa.feature.mfcc(y=audio_data.astype(float), sr=sample_rate, n_mfcc=13)
 mfcc = np.mean(mfcc, axis=1)  # Özellikleri ortalama alarak tek bir vektör haline getirme
+
+
+# Modeli yukluyoruz
+model = joblib.load("your_model.pkl")  # Modeli daha önce kaydettiğiniz dosyadan yükleyin
 
 # Özellikler ve etiketler
 x = []  # MFCC özelliklerini saklayacak olan liste
