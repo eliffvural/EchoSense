@@ -18,6 +18,9 @@ chunk = 1024  # Ses parçası boyutu
 sample_rate = 16000  # Örnekleme oranı
 stream = p.open(format=pyaudio.paInt16, channels=1, rate=sample_rate, input=True, frames_per_buffer=chunk)
 
+# Ses verisini aliyoruz
+audio_data = np.frombuffer(stream.read(chunk), dtype=np.int16)
+
 # Özellikler ve etiketler
 x = []  # MFCC özelliklerini saklayacak olan liste
 y = []  # Etiketleri saklayacak olan liste
