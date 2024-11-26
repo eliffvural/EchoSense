@@ -13,6 +13,11 @@ dataset_path = './dataset'
 # Ses kaydını almak için PyAudio kullaniyoruz, import edildi
 p = pyaudio.PyAudio()
 
+# Mikrofon ayarlarini belirliyoruz bu sekilde;
+chunk = 1024  # Ses parçası boyutu
+sample_rate = 16000  # Örnekleme oranı
+stream = p.open(format=pyaudio.paInt16, channels=1, rate=sample_rate, input=True, frames_per_buffer=chunk)
+
 # Özellikler ve etiketler
 x = []  # MFCC özelliklerini saklayacak olan liste
 y = []  # Etiketleri saklayacak olan liste
