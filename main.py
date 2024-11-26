@@ -10,6 +10,13 @@ audio_file = os.path.join('audio', 'kayit1.wav')
 audio_file = './audio/kayit1.wav'  # Düz eğik çizgi ile
 y, sr = librosa.load(audio_file)
 
+# MFCC ozelliklerini cikariyoruz
+mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+
+# MFCC ozelliklerinin boyutlarini kontrol ediyoruz
+print(mfcc.shape)
+
+
 # Ses bilgilerini yazdırma
 print(f"Örnekleme oranı (Sample Rate): {sr}")
 print(f"Sesin toplam uzunluğu (in seconds): {librosa.get_duration(y=y, sr=sr)}")
