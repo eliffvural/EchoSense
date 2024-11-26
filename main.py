@@ -48,7 +48,9 @@ model.fit(X_train, y_train)
 # Test verisi üzerinde tahmin yapalim
 y_pred = model.predict(X_test)
 
-
+# Doğruluk ve F1 Skoru hesaplayalim
+acc = accuracy_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred, average='weighted')
 
 # Veriyi kontrol edelim
 print(f"X shape: {X.shape}")
