@@ -21,6 +21,6 @@ def predict_speaker(audio_file):
         return f"Error: {e}"
 
 if __name__ == "__main__":
-    audio_file = "./dataset/speaker2/kayit4.wav"
+    audio_file = "./dataset/speaker3/kayit6.wav"
     result = predict_speaker(audio_file)
     print(f"Tahmin edilen kişi: {result}")

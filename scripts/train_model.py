@@ -14,6 +14,7 @@ x = []  # MFCC özelliklerini saklayacak olan liste
 y = []  # Etiketleri saklayacak olan liste
 
 # Ses dosyalarını yükleyip MFCC çıkar
+# Ses dosyalarını yükleyip MFCC çıkar
 for label, speaker_folder in enumerate(os.listdir(dataset_path)):
     speaker_folder_path = os.path.join(dataset_path, speaker_folder)
     if os.path.isdir(speaker_folder_path):
@@ -25,9 +26,10 @@ for label, speaker_folder in enumerate(os.listdir(dataset_path)):
                     mfcc = librosa.feature.mfcc(y=y_audio, sr=sr, n_mfcc=13)
                     mfcc = np.mean(mfcc, axis=1)
                     x.append(mfcc)
-                    y.append(label)
+                    y.append(label)  # Etiket, klasöre göre atanıyor
                 except Exception as e:
                     print(f"Error processing {file_path}: {e}")
+
 
 # Veriyi numpy arraylerine çevir
 X = np.array(x)

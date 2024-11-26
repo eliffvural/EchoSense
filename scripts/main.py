@@ -1,20 +1,20 @@
-import sys
+from train_model import train_model
 from predict import predict_speaker
+from live_prediction import live_predict
 
-def main():
-    print("1. Model Eğitimi")
-    print("2. Tahmin Yap")
-    choice = input("Bir seçenek seçin (1/2): ")
+print("1. Model Eğitimi")
+print("2. Tahmin Yap")
+print("3. Anlık Ses Tanımlama")
 
-    if choice == "1":
-        import train_model
-        print("Model eğitildi ve kaydedildi.")
-    elif choice == "2":
-        audio_file = input("Tahmin yapılacak ses dosyasının yolunu girin: ")
-        result = predict_speaker(audio_file)
-        print(f"Tahmin edilen kişi: {result}")
-    else:
-        print("Geçersiz seçenek.")
+choice = input("Bir seçenek seçin (1/2/3): ")
 
-if __name__ == "__main__":
-    main()
+if choice == "1":
+    train_model()
+elif choice == "2":
+    audio_file = input("Tahmin yapılacak ses dosyasının yolunu girin: ")
+    result = predict_speaker(audio_file)
+    print(f"Tahmin edilen kişi: {result}")
+elif choice == "3":
+    live_predict()
+else:
+    print("Geçersiz seçim!")
