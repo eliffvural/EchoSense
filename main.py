@@ -1,7 +1,19 @@
 import os
 import librosa
 import matplotlib.pyplot as plt
+import numpy as np
 
+
+# Ses verilerinin bulundugu dizinin yolu
+dataset_path='./dataset'
+
+# Ozellikler ve etiketler
+x=[] # MFCC ozelliklerini saklayacak olan liste
+y=[] # Etiketleri saklayacak olan liste
+
+# Ses dosyalarini yukleyelim ve MFCC ozelliklerini cikaralim
+for label, speaker_folder in enumerate(os.listdir(dataset_path)):
+    speaker_folder_path = os.path.join(dataset_path, speaker_folder)
 
 # Ses dosyasının yolu
 audio_file = os.path.join('audio', 'kayit1.wav')
