@@ -10,6 +10,9 @@ from sklearn.metrics import accuracy_score, f1_score
 # Ses verilerinin bulunduğu dizinin yolu
 dataset_path = './dataset'
 
+# Ses kaydını almak için PyAudio kullaniyoruz, import edildi
+p = pyaudio.PyAudio()
+
 # Özellikler ve etiketler
 x = []  # MFCC özelliklerini saklayacak olan liste
 y = []  # Etiketleri saklayacak olan liste
