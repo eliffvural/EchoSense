@@ -21,6 +21,10 @@ stream = p.open(format=pyaudio.paInt16, channels=1, rate=sample_rate, input=True
 # Ses verisini aliyoruz
 audio_data = np.frombuffer(stream.read(chunk), dtype=np.int16)
 
+# MFCC özelliklerini cikariyoruz
+mfcc = librosa.feature.mfcc(y=audio_data.astype(float), sr=sample_rate, n_mfcc=13)
+mfcc = np.mean(mfcc, axis=1)  # Özellikleri ortalama alarak tek bir vektör haline getirme
+
 # Özellikler ve etiketler
 x = []  # MFCC özelliklerini saklayacak olan liste
 y = []  # Etiketleri saklayacak olan liste
