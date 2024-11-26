@@ -32,6 +32,10 @@ mfcc = np.mean(mfcc, axis=1)  # Özellikleri ortalama alarak tek bir vektör hal
 # Modeli yukluyoruz
 model = joblib.load("your_model.pkl")  # Modeli daha önce kaydettiğiniz dosyadan yükleyin
 
+# Anlık ses verisinden kişiyi taniyoruz
+prediction = model.predict([mfcc])
+print(f"Predicted speaker: {prediction}")
+
 # Özellikler ve etiketler
 x = []  # MFCC özelliklerini saklayacak olan liste
 y = []  # Etiketleri saklayacak olan liste
