@@ -1,4 +1,5 @@
 import os
+import pyaudio
 import librosa
 import matplotlib.pyplot as plt
 import numpy as np
