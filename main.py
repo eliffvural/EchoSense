@@ -24,7 +24,11 @@ for label, speaker_folder in enumerate(os.listdir(dataset_path)):
                 file_path = os.path.join(speaker_folder_path, file)
                 
                 # Ses dosyasını yükle
-                y_audio, sr = librosa.load(file_path, sr=None)  # sr=None, orijinal sample rate'i kullanır
+                try:
+                    y_audio, sr = librosa.load(file_path, sr=None)  # sr=None, orijinal sample rate'i kullanır
+                except Exception as e:
+                    print(f"Error loading {file_path}: {e}")
+                    continue
                 
                 # MFCC özelliklerini çıkar
                 mfcc = librosa.feature.mfcc(y=y_audio, sr=sr, n_mfcc=13)  # 13 temel MFCC özelliği çıkar
@@ -38,21 +42,21 @@ for label, speaker_folder in enumerate(os.listdir(dataset_path)):
 X = np.array(x)
 y = np.array(y)
 
-# Veriyi eğitim ve test setlerine ayiralim.
+# Veriyi eğitim ve test setlerine ayıralım
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Modeli oluşturalim ve eğitelim
+# Modeli oluşturalım ve eğitelim
 model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 
-# Test verisi üzerinde tahmin yapalim
+# Test verisi üzerinde tahmin yapalım
 y_pred = model.predict(X_test)
 
-# Doğruluk ve F1 Skoru hesaplayalim
+# Doğruluk ve F1 Skoru hesaplayalım
 acc = accuracy_score(y_test, y_pred)
 f1 = f1_score(y_test, y_pred, average='weighted')
 
-# Sonuçlari yazdiralim
+# Sonuçları yazdıralım
 print(f"Accuracy: {acc}")
 print(f"F1 Score: {f1}")
 
@@ -61,26 +65,33 @@ print(f"X shape: {X.shape}")
 print(f"y shape: {y.shape}")
 
 # Ses dosyasının yolu
-audio_file = './audio/kayit1.wav'
+audio_file = './dataset/speaker2/kayit4.wav'
 
 # Ses dosyasını yükleme
-y, sr = librosa.load(audio_file)
+try:
+    y_audio, sr = librosa.load(audio_file, sr=None)
+except Exception as e:
+    print(f"Error loading audio file {audio_file}: {e}")
+    y_audio, sr = None, None
 
-# MFCC özelliklerini çıkarıyoruz
-mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+if y_audio is not None:
+    # MFCC özelliklerini çıkarıyoruz
+    mfcc = librosa.feature.mfcc(y=y_audio, sr=sr, n_mfcc=13)
 
-# MFCC özelliklerinin boyutlarını kontrol ediyoruz
-print(f"MFCC Shape: {mfcc.shape}")
+    # MFCC özelliklerinin boyutlarını kontrol ediyoruz
+    print(f"MFCC Shape: {mfcc.shape}")
 
-# Ses bilgilerini yazdırma
-print(f"Örnekleme oranı (Sample Rate): {sr}")
-print(f"Sesin toplam uzunluğu (in seconds): {librosa.get_duration(y=y, sr=sr)}")
+    # Ses bilgilerini yazdırma
+    print(f"Örnekleme oranı (Sample Rate): {sr}")
+    print(f"Sesin toplam uzunluğu (in seconds): {librosa.get_duration(y=y_audio, sr=sr)}")
 
-# Ses verisinin histogramını oluşturma
-plt.figure(figsize=(10, 6))
-plt.hist(y, bins=100, color='blue', alpha=0.7)  # Ses verisini histogram olarak çizer.
-plt.title("Ses Verisi Histogramı")
-plt.xlabel("Amplitüd")
-plt.ylabel("Frekans")
-plt.grid(True)
-plt.show()  # Grafiği ekranda görüntüler
+    # Ses verisinin histogramını oluşturma
+    plt.figure(figsize=(10, 6))
+    plt.hist(y_audio, bins=100, color='blue', alpha=0.7)  # Ses verisini histogram olarak çizer
+    plt.title("Ses Verisi Histogramı")
+    plt.xlabel("Amplitüd")
+    plt.ylabel("Frekans")
+    plt.grid(True)
+    plt.show()  # Grafiği ekranda görüntüler
+else:
+    print("Ses dosyası yüklenemedi.")
