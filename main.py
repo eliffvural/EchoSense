@@ -16,4 +16,7 @@ print(f"Sesin toplam uzunluğu (in seconds): {librosa.get_duration(y=y, sr=sr)}"
 plt.figure(figsize=(10,6))
 plt.hist(y, bins=100, color='blue', alpha=0.7)
 plt.title("Ses Verisi Histogramı")
-
+plt.xlabel("Amplitüd")
+plt.ylabel("Frekans")
+plt.grid(True)
+plt.show()
