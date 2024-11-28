@@ -1,58 +1,73 @@
 import sounddevice as sd
-from scipy.io.wavfile import write
+import numpy as np
+import wave
 import whisper
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
 
-# **Adım 1: Mikrofondan Ses Kaydı**
-def record_audio(output_path, duration=5, sample_rate=44100):
+# Adım 1: Ses Kaydını Yapma
+def record_audio(file_name, duration=5, samplerate=44100):
     print("Ses kaydı başlıyor...")
-    recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=2)
-    sd.wait()  # Kaydı tamamlamak için bekle
-    write(output_path, sample_rate, recording)
-    print(f"Ses kaydı tamamlandı: {output_path}")
+    audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='int16')
+    sd.wait()
+    print(f"Ses kaydı tamamlandı: {file_name}")
+    
+    with wave.open(file_name, 'wb') as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(samplerate)
+        wf.writeframes(audio_data.tobytes())
 
-# **Adım 2: Sesi Metne Çevir (Whisper)**
-def transcribe_audio(audio_path, language="tr"):
-    print("Ses metne çevriliyor...")
+# Adım 2: Ses Kaydını Metne Çevirme
+def transcribe_audio(file_name):
     model = whisper.load_model("base")
-    result = model.transcribe(audio_path, language=language)
+    result = model.transcribe(file_name)
+    print("Ses metne çevriliyor...")
     return result['text']
 
-# **Adım 3: Kategori Analizi için Model Eğitimi**
-def train_classifier():
-    # Eğitim veri kümesi
-    data = [
-        ("Galatasaray maçı çok heyecanlıydı!", "Spor"),
-        ("Yeni iPhone 15 özellikleri tanıtıldı.", "Teknoloji"),
-        ("Dünya genelinde ekonomik kriz devam ediyor.", "Dünya"),
-        ("Yeni sergi modern sanat eserlerini sergiliyor.", "Sanat"),
-        ("Beşiktaş ve Fenerbahçe derbisi nefes kesti!", "Spor"),
-        ("Tesla yeni model arabasını duyurdu.", "Teknoloji"),
-        ("Birleşmiş Milletler zirvesinde önemli kararlar alındı.", "Dünya"),
-        ("Ressamın yeni sergisi çok ilgi gördü.", "Sanat"),
-    ]
+# Adım 3: Kategoriye Ait Anahtar Kelimeler
+category_keywords = {
+    "Spor": ["futbol", "basketbol", "maç", "spor", "takım", "gol", "şampiyon", "stadyum", "rakip", "antrenman"],
+    "Sağlık": ["hastane", "randevu", "doktor", "tedavi", "sağlık", "ameliyat", "doktor", "sağlık hizmeti", "ilaç", "kansere", "kanser"],
+    "Teknoloji": ["yazılım", "donanım", "telefon", "bilgisayar", "yapay zeka", "iot", "web", "robotik", "yeni telefon", "geliştirici"],
+    "Doğa Olayları": ["yağmur", "fırtına", "sel", "deprem", "volkan", "dolu", "tsunami", "doğa", "orman yangını", "kar fırtınası"],
+    "Bilim": ["araştırma", "buluş", "keşif", "astronomi", "biyoloji", "fizik", "kimya", "laboratuvar", "genetik", "kuantum"],
+    "Sanat": ["resim", "heykel", "sergi", "müze", "sanatçı", "performans", "dans", "müzik", "film", "sinema", "galeri"],
+    "Eğitim": ["okul", "öğrenci", "öğretmen", "sınav", "ders", "eğitim", "üniversite", "kampüs", "öğrenme", "kitap"],
+    "Toplum": ["kültür", "toplum", "aile", "göç", "sosyal", "yardım", "topluluk", "toplumun", "savaş", "barış"],
+    "Dünya": ["haber", "ekonomi", "politik", "gündem", "savaş", "kriz", "yönetim", "ülke", "dünya", "başkan"],
+    "Müzik": ["şarkı", "albüm", "sanatçı", "müzik", "konser", "melodi", "enstrüman", "rock", "pop", "rap", "klip"],
+    "Psikoloji": ["duygu", "beyin", "psikolojik", "terapi", "ruh hali", "tedavi", "stres", "depresyon", "zihinsel", "kaygı"],
+    "Çevre": ["iklim", "küresel ısınma", "çevre", "orman", "doğa", "plastik", "geri dönüşüm", "sıfır atık", "biyoçeşitlilik", "karbon salınımı"],
+    "Tarih": ["eski", "medeni", "tarih", "imparatorluk", "yazıt", "kağıt", "müze", "arkeoloji", "civilizasyon", "kültür"],
+        "Hijjj": ["seni", "çok", "seviyorum", "kalbim", "yazıt", "kağıt", "müze", "arkeoloji", "civilizasyon", "kültür"]
 
-    texts, labels = zip(*data)
+}
 
-    # Metni vektörize etme
-    vectorizer = CountVectorizer()
-    X = vectorizer.fit_transform(texts)
+# Adım 4: Kategori Tahmini Yapma
+def predict_category(text):
+    if not text.strip():  # Eğer metin boşsa, kategori atama yapma
+        return "Metin yok"
+    
+    text = text.lower()
+    scores = {category: 0 for category in category_keywords}  # Her kategori için puan başlatıyoruz
 
-    # Model eğitimi
-    classifier = MultinomialNB()
-    classifier.fit(X, labels)
+    # Her kategoriye ait anahtar kelimeleri kontrol ediyoruz
+    for category, keywords in category_keywords.items():
+        for keyword in keywords:
+            if keyword in text:
+                scores[category] += 1  # Anahtar kelimeyi bulursak, o kategoriye puan ekliyoruz
 
-    return classifier, vectorizer
+    # En yüksek puanı alan kategoriyi döndürüyoruz
+    predicted_category = max(scores, key=scores.get)
 
-# **Adım 4: Kategori Tahmini**
-def predict_category(text, classifier, vectorizer):
-    X_test = vectorizer.transform([text])
-    return classifier.predict(X_test)[0]
+    # Eğer hiçbir kategori ile eşleşme yoksa
+    if scores[predicted_category] == 0:
+        return "Kategori bulunamadı"
 
-# **Ana Fonksiyon**
+    return predicted_category
+
+# Ana Program
 if __name__ == "__main__":
-    # Adım 1: Ses Kaydı
+    # Adım 1: Ses Kaydını Yap
     audio_path = "live_audio.wav"
     record_audio(audio_path, duration=5)  # 5 saniyelik ses kaydı
 
@@ -60,9 +75,6 @@ if __name__ == "__main__":
     text = transcribe_audio(audio_path)
     print("Transkript:", text)
 
-    # Adım 3: Modeli Eğit
-    classifier, vectorizer = train_classifier()
-
-    # Adım 4: Kategori Belirleme
-    category = predict_category(text, classifier, vectorizer)
+    # Adım 3: Kategori Belirleme
+    category = predict_category(text)
     print(f"Tespit edilen kategori: {category}")
