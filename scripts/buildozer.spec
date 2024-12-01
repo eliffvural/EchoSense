@@ -3,6 +3,8 @@
 # (str) Title of your application
 title = My Application
 
+
+
 # (str) Package name
 package.name = myapp
 
@@ -53,6 +55,9 @@ requirements = python3,kivy
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse
 orientation = portrait
 
+target = android
+
+
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
 
@@ -62,6 +67,8 @@ orientation = portrait
 
 #
 # author = © Copyright Info
+
+
 
 # change the major version of python used by the app
 osx.python_version = 3
