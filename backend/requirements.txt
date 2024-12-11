@@ -1,0 +1,15 @@
+pyaudio
+librosa
+numpy
+scikit-learn
+joblib
+matplotlib
+sounddevice
+scipy
+whisper
+flask
+sounddevice
+transformers
+wave
+
+
