@@ -3,15 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EchoSense - Anlık Ses Kaydı</title>
+    <title>Ses Tanıma Uygulaması</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 { color: #007BFF; }
+        #transcription {
+            font-size: 1.2rem;
+            color: #333;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            min-height: 100px;
+        }
+    </style>
 </head>
 <body>
-    <h1>EchoSense - Anlık Ses Analizi</h1>
-    <button id="start-recording">Kaydı Başlat</button>
-    <button id="stop-recording" disabled>Kaydı Durdur</button>
-    <p id="status">Durum: Bekliyor...</p>
-    <p id="result">Sonuçlar burada gösterilecek</p>
+    <h1>Ses Tanıma Uygulaması</h1>
+    <button id="startButton">Başlat</button>
+    <button id="stopButton" disabled>Durdur</button>
 
-    <script src="script.js"></script>
+    <h2>Canlı Metin:</h2>
+    <div id="transcription">Konuşmaya başladığınızda burada görünecek...</div>
+
+    <h3>Sonuçlar:</h3>
+    <p>Konuşmacı: <span id="speaker"></span></p>
+    <p>Kategori: <span id="category"></span></p>
+
+    <script>
+        const startButton = document.getElementById("startButton");
+        const stopButton = document.getElementById("stopButton");
+        const transcriptionDiv = document.getElementById("transcription");
+        const speakerSpan = document.getElementById("speaker");
+        const categorySpan = document.getElementById("category");
+        
+        let recognition;
+        let processedSegments = []; // Gönderilen cümleleri tutar
+        
+        if ("webkitSpeechRecognition" in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = "tr-TR";
+        
+            recognition.onstart = () => {
+                transcriptionDiv.textContent = "Dinliyor...";
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                processedSegments = [];
+            };
+        
+            recognition.onresult = (event) => {
+                let interimText = "";
+                let finalText = "";
+        
+                for (let i = 0; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript.trim();
+        
+                    if (event.results[i].isFinal) {
+                        // Final metin tekrar kontrolü
+                        if (!processedSegments.includes(transcript)) {
+                            processedSegments.push(transcript);
+                            sendToBackend(transcript); // Backend'e gönder
+                        }
+                    } else {
+                        interimText += transcript + " ";
+                    }
+                }
+        
+                // Geçici ve final metni ekrana yaz
+                transcriptionDiv.textContent = processedSegments.join(" ") + " " + interimText;
+            };
+        
+            recognition.onerror = (event) => console.error("Hata:", event.error);
+        
+            recognition.onend = () => {
+                transcriptionDiv.textContent += " [Dinleme sona erdi]";
+                startButton.disabled = false;
+                stopButton.disabled = true;
+            };
+        } else {
+            alert("Tarayıcınız bu özelliği desteklemiyor!");
+        }
+        
+        // Backend'e anlık veri gönderme
+        function sendToBackend(text) {
+            fetch("/process_text", {
+                method: "POST",
+                body: JSON.stringify({ text: text }),
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                speakerSpan.textContent = data.speaker || "Bilinmiyor";
+                categorySpan.textContent = data.category || "Bilinmiyor";
+            })
+            .catch(error => console.error("Backend hatası:", error));
+        }
+        
+        startButton.addEventListener("click", () => recognition.start());
+        stopButton.addEventListener("click", () => recognition.stop());
+        
+        
+    </script>
 </body>
 </html>

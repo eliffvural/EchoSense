@@ -1,48 +1,66 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS  # CORS modülünü içe aktarın
-from audio_classification import record_audio, transcribe_audio, predict_category, predict_emotion
-import os
+from flask import Flask, request, jsonify, render_template
+import joblib
+import numpy as np
 
-app = Flask(__name__)
-CORS(app)  # Tüm endpoint'ler için CORS'u etkinleştir
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app = Flask(__name__, template_folder="../Frontend")
 
-@app.route('/')
-def home():
-    return "EchoSense Backend API çalışıyor!"
+# Model ve scaler yükleme
+model = joblib.load("../Model/random_forest_model.joblib")
+scaler = joblib.load("../Model/scaler.joblib")
 
-@app.route('/record', methods=['POST'])
-def record():
-    duration = request.json.get('duration', 5)  # Varsayılan süre 5 saniye
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], "recorded_audio.wav")
-    record_audio(file_path, duration=duration)
-    return jsonify({'message': 'Audio recorded successfully', 'file_path': file_path})
+# Konuşmacı etiketleri
+SPEAKER_LABELS = {0: "Elif", 1: "İrem", 2: "Nazlı"}
 
-@app.route('/transcribe', methods=['POST'])
-def transcribe():
-    file = request.files['file']
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], "uploaded_audio.wav")
-    file.save(file_path)
-    text = transcribe_audio(file_path)
-    return jsonify({'text': text})
+# Kategori anahtar kelimeleri
+CATEGORY_KEYWORDS = {
+    "Spor": ["futbol", "basketbol", "maç", "spor", "takım"],
+    "Sağlık": ["hastane", "doktor", "tedavi", "ilaç"],
+    "Teknoloji": ["bilgisayar", "yapay zeka", "telefon"]
+}
 
-@app.route('/analyze', methods=['POST'])
-def analyze():
+def predict_speaker(text):
     try:
-        file = request.files['file']
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], "uploaded_audio.wav")
-        file.save(file_path)
+        # Basit özellik çıkarımı
+        text_length = len(text.split())
+        char_count = len(text)
 
-        # Analiz işlemleri
-        text = transcribe_audio(file_path)
-        category = predict_category(text)
-        emotion = predict_emotion(file_path)
+        # Özellik vektörü oluştur
+        features = np.array([text_length, char_count]).reshape(1, -1)
+        features_normalized = scaler.transform(features)
 
-        return jsonify({'text': text, 'category': category, 'emotion': emotion})
+        # Tahmin yap
+        prediction = model.predict(features_normalized)
+        return SPEAKER_LABELS.get(prediction[0], "Bilinmiyor")
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Konuşmacı tahmin hatası: {e}")
+        return "Bilinmiyor"
+
+def predict_category(text):
+    text = text.lower()
+    for category, keywords in CATEGORY_KEYWORDS.items():
+        if any(word in text for word in keywords):
+            return category
+    return "Kategori Bulunamadı"
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/process_text", methods=["POST"])
+def process_text():
+    try:
+        data = request.get_json()
+        text = data.get("text", "")
+        if not text.strip():
+            return jsonify({"speaker": "Bilinmiyor", "category": "Bilinmiyor"})
+
+        speaker = predict_speaker(text)
+        category = predict_category(text)
+
+        return jsonify({"speaker": speaker, "category": category})
+    except Exception as e:
+        print(f"Hata: {e}")
+        return jsonify({"error": "Sunucu hatası"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
